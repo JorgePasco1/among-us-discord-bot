@@ -90,9 +90,6 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.channel.id != 775113605363924992:
-        return
-
     if message.content.startswith('!'):
         channel = message.channel
         response = analyize_message(message.content[1:])
