@@ -4,7 +4,7 @@ from random import randint, randrange, choice
 import discord
 
 client = discord.Client()
-BOT_TOKEN = os.environ['BOT_TOKEN']
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 
 def say_hello():
