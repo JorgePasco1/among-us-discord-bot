@@ -5,13 +5,14 @@ from random import randint, randrange, choice
 import discord
 
 client = discord.Client()
-intents = discord.Intents.reactions = True # Needed to listen to reactions
+intents = discord.Intents.reactions = True  # Needed to listen to reactions
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 COMMAND_PREFIX = '!'
 
 
 async def say_hello(received_message: discord.Message):
-    return "Hello! I am a bot. Type !help to see the available commands"
+    salutation = "Hello! I am a bot. Type !help to see the available commands"
+    await received_message.channel.send(salutation)
 
 
 async def get_help(received_message: discord.Message):
@@ -24,6 +25,9 @@ async def get_help(received_message: discord.Message):
     return f"""The available commands are:
 {description_lines}
     """
+
+    await received_message.channel.send(description_lines)
+
 
 async def check_if_message_has_bot_reaction(message: discord.Message, emoji: str):
     has_bot_reaction = False
@@ -130,7 +134,6 @@ async def analyze_reaction(received_reaction: discord.Reaction):
 
     if await check_if_message_has_bot_reaction(received_reaction.message, received_reaction.emoji):
         await possible_reactions[received_reaction.emoji](received_reaction.message)
-
 
 
 @client.event
