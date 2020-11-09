@@ -1,17 +1,20 @@
+# TODO: REFACTOR
 import os
 from random import randint, randrange, choice
 
 import discord
 
 client = discord.Client()
+intents = discord.Intents.reactions = True # Needed to listen to reactions
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+COMMAND_PREFIX = '!'
 
 
-def say_hello():
+async def say_hello(received_message: discord.Message):
     return "Hello! I am a bot. Type !help to see the available commands"
 
 
-def get_help():
+async def get_help(received_message: discord.Message):
     description_lines = ''
 
     for command in possible_commands.keys():
@@ -21,6 +24,19 @@ def get_help():
     return f"""The available commands are:
 {description_lines}
     """
+
+async def check_if_message_has_bot_reaction(message: discord.Message, emoji: str):
+    has_bot_reaction = False
+
+    for reaction in message.reactions:
+        if reaction.emoji != emoji:
+            continue
+
+        users_that_reacted = await reaction.users().flatten()
+        if client.user in users_that_reacted:
+            has_bot_reaction = True
+
+    return has_bot_reaction
 
 
 def get_random_config():
@@ -57,6 +73,27 @@ def get_random_config():
     return config_string
 
 
+async def send_random_config(received_message: discord.Message):
+    config_string = get_random_config()
+
+    try:
+        sent_message = await received_message.channel.send(config_string)
+        await sent_message.add_reaction('🔁')
+        return "Success"
+    except Exception as e:
+        return str(e)
+
+
+async def update_random_config(message):
+    config_string = get_random_config()
+
+    try:
+        await message.edit(content=config_string)
+        return "Success"
+    except Exception as e:
+        return str(e)
+
+
 possible_commands = {
     'hello': {
         'description': "Get a salutation from the bot.",
@@ -68,16 +105,32 @@ possible_commands = {
     },
     'random_settings': {
         'description': "Get a random set of settings for your game.",
-        'execute': get_random_config
+        'execute': send_random_config
     }
 }
 
 
-def analyize_message(message):
-    if message not in possible_commands.keys():
+possible_reactions = {
+    "🔁": update_random_config
+}
+
+
+async def analyize_message(received_message: discord.Message):
+    command = received_message.content[1:]
+
+    if command not in possible_commands.keys():
         return "Command not found. Type !help to see possible commands"
 
-    return possible_commands[message]['execute']()
+    return await possible_commands[command]['execute'](received_message)
+
+
+async def analyze_reaction(received_reaction: discord.Reaction):
+    if received_reaction.message.author != client.user or received_reaction.emoji not in possible_reactions.keys():
+        return
+
+    if await check_if_message_has_bot_reaction(received_reaction.message, received_reaction.emoji):
+        await possible_reactions[received_reaction.emoji](received_reaction.message)
+
 
 
 @client.event
@@ -90,9 +143,16 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('!'):
-        channel = message.channel
-        response = analyize_message(message.content[1:])
-        await channel.send(response)
+    if message.content.startswith(COMMAND_PREFIX):
+        await analyize_message(message)
+
+
+@client.event
+async def on_reaction_add(reaction, user):
+    if user == client.user:
+        return
+
+    await analyze_reaction(reaction)
+
 
 client.run(BOT_TOKEN)
