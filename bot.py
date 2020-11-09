@@ -22,11 +22,11 @@ async def get_help(received_message: discord.Message):
         description_lines = description_lines + \
             f"\t**!{command}**: {possible_commands[command]['description']}" + "\n"
 
-    return f"""The available commands are:
+    response = f"""The available commands are:
 {description_lines}
     """
 
-    await received_message.channel.send(description_lines)
+    await received_message.channel.send(response)
 
 
 async def check_if_message_has_bot_reaction(message: discord.Message, emoji: str):
