@@ -18,9 +18,9 @@ async def analyze_reaction(client: Client, received_reaction: Reaction, user: Us
     message = received_reaction.message
     emoji = received_reaction.emoji
 
-    if message.author != client.user or emoji not in possible_reactions.keys():
+    if emoji not in possible_reactions.keys() or not await check_if_message_has_bot_reaction(client, message, emoji):
         return
 
-    if await check_if_message_has_bot_reaction(client, message, emoji):
-        await possible_reactions[emoji](received_reaction)
+    success = await possible_reactions[emoji](received_reaction)
+    if success:
         await remove_reaction_after_update(received_reaction, user)

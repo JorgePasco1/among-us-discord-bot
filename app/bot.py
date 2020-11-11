@@ -26,7 +26,7 @@ async def on_message(message):
 
 @client.event
 async def on_reaction_add(reaction, user):
-    if user == client.user:
+    if user == client.user or reaction.message.author != client.user:
         return
 
     await analyze_reaction(client, reaction, user)

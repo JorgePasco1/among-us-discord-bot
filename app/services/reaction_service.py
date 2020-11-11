@@ -9,8 +9,10 @@ async def update_random_config(reaction: Reaction):
 
     try:
         await message.edit(content=config_string)
+        return True
     except Exception as e:
         print(str(e))
+        return False
 
 
 async def remove_reaction_after_update(reaction: Reaction, user: User):
